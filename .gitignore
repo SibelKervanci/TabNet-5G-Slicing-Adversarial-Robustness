@@ -1,0 +1,26 @@
+# Dataset (download separately, see data/README.md)
+CICIOT2023/
+
+# Generated outputs
+reports/
+models/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+*.egg-info/
+.venv/
+venv/
+env/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Large binary artifacts
+*.zip
+*.pt
+*.pth
