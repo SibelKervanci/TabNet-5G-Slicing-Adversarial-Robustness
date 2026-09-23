@@ -1,150 +1,150 @@
-# Slice-Aware Adversarial Vulnerability Analysis of TabNet-Based Intrusion Detection Systems in 5G Network Slicing
+# Slice-Aware Adversarial Vulnerability Analysis of TabNet-Based Intrusion Detection in 5G Network Slicing
 
-Code accompanying the paper:
-> Gözde Özsert Yiğit, Ilkay Sibel Kervanci, *"Slice-Aware Adversarial
-> Vulnerability Analysis of TabNet-Based Intrusion Detection in 5G Network
-> Slicing"*, Department of Computer Engineering, Gaziantep University.
-> Submitted to *Symmetry* (MDPI).
+> **Paper:** Gözde Özsert Yiğit & Ilkay Sibel Kervanci — *Symmetry* (MDPI), manuscript ID: symmetry-4551760  
+> **Dataset:** [CICIoT2023](https://www.unb.ca/cic/datasets/iotdataset-2023.html) — 34 attack classes, 46 features, 3 5G network slices (eMBB / URLLC / mMTC)
 
-This repository contains the full experimental pipeline used in the paper:
-TabNet-based NIDS training, attention-mask analysis, the proposed
-**Attention-Guided Evasion (AGE)** attack (random, gradient, and
-transfer-based variants), the proposed **Per-Slice Robustness Index (PSRI)**
-and **Slice-Weighted F1 (SW-F1)** metrics, a DeepSHAP-guided baseline
-comparison, multi-seed robustness / bootstrap significance testing, baseline
-model comparisons, and the scripts used to generate every figure in the
-paper.
+---
 
-## Repository structure
+## Repository Structure
 
 ```
-.
-├── scripts/                        # Main experimental pipeline (run in order)
-│   ├── 02_eda.py                    # Exploratory data analysis
-│   ├── 03_tabnet_baseline.py        # TabNet training + attention analysis
-│   ├── 03b_attention_only.py        # Re-run attention analysis on a saved model
-│   ├── 04_age_attack.py             # AGE (random-noise variant) vs FGSM/PGD
-│   ├── 04b_age_gradient.py          # AGE gradient-based variant (direct TabNet grad)
-│   ├── 04c_age_transfer.py          # AGE transfer-based variant (proposed, paper-final)
-│   ├── 07_psri_metric.py            # PSRI / SW-F1 with random-noise AGE
-│   ├── 07b_psri_transfer.py         # PSRI / SW-F1 with transfer-based AGE (paper-final)
-│   ├── 08_baseline_comparison.py    # Random Forest / MLP / TabNet, 5-seed comparison
-│   ├── 10_multiseed_bootstrap.py    # TabNet multi-seed PSRI (5 seeds, 95% CI) +
-│   │                                 # bootstrap significance test (AGE vs. FGSM drop)
-│   └── 11_deepshap_baseline.py      # AGE-Attention vs. AGE-SHAP (DeepSHAP) vs. FGSM
-├── figures/                        # Standalone scripts that regenerate paper figures
-│   ├── fig_confusion_matrix.py
-│   ├── fig1_perslice.py
-│   ├── fig2_slice_dagilim.py
-│   └── fig3_attack_flow.py
-├── additional_experiments/         # Exploratory scripts — not (yet) reported in the paper
-│   ├── 09_5gnidd_generalizability.py    # Generalizability check on 5G-NIDD
-│   ├── 09_toniot_generalizability.py    # Generalizability check on TON_IoT
-│   └── 12_adversarial_finetuning.py     # Defense experiment (adversarial fine-tuning)
-├── data/
-│   └── README.md                    # Instructions for obtaining CICIoT2023
-├── requirements.txt
-├── LICENSE
-└── .gitignore
+ciciot2023_analysis/
+│
+├── 01_eda.py                        # Exploratory data analysis, class distribution
+├── 02_preprocessing.py              # Feature engineering, label encoding, train/test split
+├── 03_tabnet_baseline.py            # TabNet training, confusion matrix, per-class F1
+│                                    #   → outputs: models/tabnet_model.*
+│                                    #   → outputs: reports/top_attention_features.csv  ← required by 04c
+├── 04a_fgsm_attack.py               # FGSM adversarial evaluation
+├── 04b_pgd_attack.py                # PGD adversarial evaluation
+├── 04c_age_transfer.py              # AGE-Attention attack (surrogate MLP + TabNet attention)
+│                                    #   ← requires: reports/top_attention_features.csv
+├── 05_psri.py                       # Per-Slice Robustness Index (PSRI) computation
+├── 10_multiseed_bootstrap.py        # Multi-seed bootstrap confidence intervals
+├── 11_deepshap_ablation.py          # DeepSHAP ablation (AGE-SHAP variant)
+├── 12_stronger_baselines.py         # C&W L2 + AutoAttack (APGD-CE) baselines
+├── 13_topk_sensitivity.py           # Top-K feature sensitivity analysis (K=1,3,5,7,10,15,20)
+│
+├── fig1_perslice.py                 # Figure 1 — Per-slice F1 vs Global F1 bar chart
+├── fig2_slice_dagilim.py            # Figure 2 — Slice distribution pie + attack type bar
+├── fig3_attack_flow.py              # Figure 3 — AGE attack flow diagram
+├── fig_confusion_matrix.py          # Confusion matrix heatmap
+│
+├── models/                          # Saved TabNet model weights
+└── reports/                         # All output figures, tables, CSV files
+    ├── top_attention_features.csv   # Top-5 attention-ranked features (required by 04c)
+    ├── topk_sensitivity.csv         # Top-K sensitivity results
+    └── *.png                        # All figures (300 DPI)
 ```
 
-Running the scripts creates two additional (git-ignored) folders at the
-repository root:
+---
 
-- `models/` — saved TabNet checkpoints (`tabnet_ciciot2023.zip`)
-- `reports/` — all generated figures (`.png`) and result tables (`.csv`)
-
-> **Note on `additional_experiments/`:** these scripts were developed during
-> the review process to explore generalizability (5G-NIDD, TON_IoT) and a
-> defense strategy (adversarial fine-tuning). Their results are not part of
-> the current manuscript and are kept here for transparency and as a
-> starting point for future work.
-
-## Setup
+## Requirements
 
 ```bash
-git clone https://github.com/SibelKervanci/TabNet-5G-Slicing-Adversarial-Robustness.git
-cd TabNet-5G-Slicing-Adversarial-Robustness
-python3 -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+pip install pytorch-tabnet torch scikit-learn pandas numpy matplotlib seaborn shap
+pip install git+https://github.com/fra31/auto-attack   # AutoAttack (not on PyPI)
 ```
 
-Then download the dataset following `data/README.md` and place it at
-`CICIOT2023/` in the repository root.
+Python ≥ 3.9, PyTorch ≥ 1.12 recommended.
 
-## Reproducing the paper's results
+---
 
-Run from the repository root, in this order:
+## Script Execution Order
+
+Run scripts **in order**. Each script depends on outputs from the previous ones.
+
+### Step 1 — Preprocessing & Baseline
 
 ```bash
-# 1. Exploratory data analysis
-python scripts/02_eda.py
-
-# 2. Train TabNet baseline + attention-mask analysis
-python scripts/03_tabnet_baseline.py
-
-# 3. AGE attack vs FGSM/PGD (transfer-based variant used in the paper)
-python scripts/04c_age_transfer.py
-
-# 4. Per-slice robustness metrics (PSRI, SW-F1) — paper-final version
-python scripts/07b_psri_transfer.py
-
-# 5. Baseline model comparison (Random Forest / MLP / TabNet)
-python scripts/08_baseline_comparison.py
-
-# 6. Multi-seed TabNet robustness (95% CI) + bootstrap significance test
-#    (AGE-Attention vs. FGSM accuracy drop)
-python scripts/10_multiseed_bootstrap.py
-
-# 7. DeepSHAP-guided baseline comparison (AGE-Attention vs. AGE-SHAP vs. FGSM)
-python scripts/11_deepshap_baseline.py
-
-# 8. Regenerate individual paper figures
-python figures/fig_confusion_matrix.py
-python figures/fig1_perslice.py
-python figures/fig2_slice_dagilim.py
-python figures/fig3_attack_flow.py
+python 01_eda.py
+python 02_preprocessing.py
+python 03_tabnet_baseline.py
 ```
 
-`scripts/04_age_attack.py` / `04b_age_gradient.py` and
-`scripts/07_psri_metric.py` are earlier/alternative attack formulations
-(random-noise and direct-gradient variants) kept for transparency; the
-**transfer-based** versions (`04c_age_transfer.py`, `07b_psri_transfer.py`)
-are the ones reported as the main results in the paper (Sections 3.7,
-5.3–5.4).
+> `03_tabnet_baseline.py` saves the trained TabNet model to `models/` and writes `reports/top_attention_features.csv` (top-5 attention-ranked feature names).  
+> **This file must exist before running `04c_age_transfer.py`.**
 
-## Key results
+### Step 2 — Adversarial Attacks
 
-| Metric                                       | Value                                        |
-| --------------------------------------------- | --------------------------------------------- |
-| TabNet baseline accuracy                      | 97.07% (test), 93.7% (stratified subsample)  |
-| AGE-Transfer accuracy drop @ ε=0.10           | 50.2%                                        |
-| AGE-Transfer vs. FGSM perturbation (L2)       | 17× less                                     |
-| AGE-Transfer features modified                | 3.9 / 46 (8.5%)                              |
-| AGE-Attention vs. FGSM drop, 95% bootstrap CI | +0.044 [0.036, 0.052] (statistically significant) |
-| AGE-Attention vs. AGE-SHAP (DeepSHAP) drop    | 50.2% vs. 0.1% — attention mask is essential |
-| URLLC PSRI (most vulnerable slice)            | 0.023                                        |
-| mMTC PSRI (most robust slice, AGE)            | 0.983                                        |
-| Global weighted F1 vs. SW-F1 gap              | 0.928 → 0.807 (0.121)                        |
+```bash
+python 04a_fgsm_attack.py
+python 04b_pgd_attack.py
+python 04c_age_transfer.py      # requires reports/top_attention_features.csv
+```
+
+### Step 3 — PSRI & Slice Analysis
+
+```bash
+python 05_psri.py
+```
+
+### Step 4 — Additional Experiments (paper revision)
+
+```bash
+python 10_multiseed_bootstrap.py    # multi-seed confidence intervals
+python 11_deepshap_ablation.py      # AGE-SHAP ablation variant
+python 12_stronger_baselines.py     # C&W L2 + AutoAttack baselines
+python 13_topk_sensitivity.py       # Top-K sensitivity (K=1,3,5,7,10,15,20)
+```
+
+### Step 5 — Figures
+
+```bash
+python fig1_perslice.py
+python fig2_slice_dagilim.py
+python fig3_attack_flow.py
+python fig_confusion_matrix.py
+```
+
+All figures are saved to `reports/` at 300 DPI.
+
+---
+
+## Key Results
+
+| Attack | Acc Drop | URLLC PSRI | L2 Norm | Modified Features |
+|---|---|---|---|---|
+| AGE-Attention (proposed) | 50.2% | 0.513 | 0.216 | 4.7 |
+| FGSM | 39.0% | 0.412 | 0.664 | 44.1 |
+| PGD | 43.3% | 0.580 | 0.473 | 41.5 |
+| C&W L2 | 54.8% | 0.023 | 0.235 | 35.5 |
+| AutoAttack (APGD-CE) | 57.4% | 0.006 | 2.152 | 30.2 |
+
+**Top-5 attention-ranked features** (from `reports/top_attention_features.csv`):  
+`syn_count`, `IAT`, `SMTP`, `TCP`, `Protocol Type`
+
+**Key finding:** AGE-Attention achieves the best effectiveness–stealthiness trade-off. High-power attacks (C&W, AutoAttack) collapse URLLC PSRI to near zero, making them detectable by service-level monitoring in operational 5G networks.
+
+---
+
+## Hyperparameters
+
+| Parameter | Value |
+|---|---|
+| TabNet n_steps | 5 |
+| TabNet n_d / n_a | 64 / 64 |
+| Surrogate MLP | 256-128-64, ReLU, Adam, 30 epochs |
+| Attack ε | 0.10 |
+| AGE top-K | 5 |
+| PGD steps | 10 |
+| C&W steps | 200 |
+| Eval batch size | 500 |
+| Random seed | 42 |
+
+---
 
 ## Citation
 
-If you use this code, please cite:
+If you use this code or dataset mapping, please cite:
 
-```bibtex
-@article{ozsertyigit2026slice,
-  title   = {Slice-Aware Adversarial Vulnerability Analysis of TabNet-Based
-             Intrusion Detection in 5G Network Slicing},
-  author  = {\"{O}zsert Yi\u{g}it, G\"{o}zde and Kervanci, Ilkay Sibel},
-  journal = {Symmetry},
-  year    = {2026},
-  note    = {Under review}
-}
 ```
+Özsert Yiğit, G.; Kervanci, I.S. Slice-Aware Adversarial Vulnerability Analysis of 
+TabNet-Based Intrusion Detection in 5G Network Slicing. Symmetry 2026.
+```
+
+---
 
 ## License
 
-This project is released under the MIT License — see [LICENSE](LICENSE).
-The CICIoT2023 dataset itself is subject to its own license/terms from the
-Canadian Institute for Cybersecurity; see `data/README.md`.
+MIT License — see `LICENSE` for details.
