@@ -1,10 +1,10 @@
-hocam dosyanın içini bunla değiş :"""
-10_multiseed_bootstrap.py
-1. TabNet çoklu seed (5 seed) — PSRI mean±std
-2. Bootstrap CI: AGE vs FGSM accuracy drop
+# """
+# 10_multiseed_bootstrap.py
+# 1. TabNet çoklu seed (5 seed) — PSRI mean±std
+# 2. Bootstrap CI: AGE vs FGSM accuracy drop
 
-Çalıştırma: python 10_multiseed_bootstrap.py
-"""
+# Çalıştırma: python 10_multiseed_bootstrap.py
+# """
 
 import os, warnings, time
 import pandas as pd
