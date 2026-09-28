@@ -1,7 +1,7 @@
 """
-CICIoT2023 — TabNet Baseline + Attention Mask Analizi
-Klasör yapısı: CICIOT2023/train/train.csv  vb.
-Çalıştırma  : python3 03_tabnet_baseline.py
+CICIoT2023 â€” TabNet Baseline + Attention Mask Analizi
+KlasÃ¶r yapÄ±sÄ±: CICIOT2023/train/train.csv  vb.
+Ã‡alÄ±ÅŸtÄ±rma  : python3 03_tabnet_baseline.py
 Gereksinim  : pip install pytorch-tabnet scikit-learn
 """
 
@@ -26,7 +26,7 @@ except ImportError:
     print("HATA: pip install pytorch-tabnet")
     exit(1)
 
-# ── 1. VERİ YÜKLE ────────────────────────────────────────────────────────────
+# â”€â”€ 1. VERÄ° YÃœKLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 BASE = "CICIOT2023"
 
 def load(split):
@@ -39,7 +39,7 @@ df_test  = load("test")
 df_val   = load("validation")
 print(f"  Train: {len(df_train):,} | Test: {len(df_test):,} | Val: {len(df_val):,}")
 
-# ── 2. ETİKET SÜTUNU ─────────────────────────────────────────────────────────
+# â”€â”€ 2. ETÄ°KET SÃœTUNU â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 meta_label = None
 if os.path.exists("reports/meta.txt"):
     for line in open("reports/meta.txt"):
@@ -56,7 +56,7 @@ else:
 
 print(f"  Etiket sutunu: '{label_col}'")
 
-# ── 3. ÖN İŞLEME ─────────────────────────────────────────────────────────────
+# â”€â”€ 3. Ã–N Ä°ÅžLEME â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 feature_cols = [c for c in df_train.columns
                 if c != label_col and df_train[c].dtype in [np.float64, np.int64, float, int]]
 print(f"  Ozellik sayisi: {len(feature_cols)}")
@@ -83,13 +83,13 @@ X_train = scaler.transform(X_train_r)
 X_test  = scaler.transform(X_test_r)
 X_val   = scaler.transform(X_val_r)
 
-# ── 4. TABNET EĞİTİMİ ────────────────────────────────────────────────────────
+# â”€â”€ 4. TABNET EÄžÄ°TÄ°MÄ° â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 print("\nTabNet egitimi basliyor...")
-print("  n_steps=5 → 5G slice analizi icin 5 karar adimi")
+print("  n_steps=5 â†’ 5G slice analizi icin 5 karar adimi")
 
 model = TabNetClassifier(
     n_d=32, n_a=32,
-    n_steps=5,      # Her adım farklı özelliklere dikkat eder
+    n_steps=5,      # Her adÄ±m farklÄ± Ã¶zelliklere dikkat eder
     gamma=1.3,
     n_independent=2, n_shared=2,
     momentum=0.02,
@@ -114,15 +114,15 @@ model.fit(
 model.save_model("models/tabnet_ciciot2023")
 print("OK: models/tabnet_ciciot2023.zip")
 
-# ── 5. PERFORMANS ────────────────────────────────────────────────────────────
+# â”€â”€ 5. PERFORMANS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 print("\nTest performansi...")
 y_pred = model.predict(X_test)
 acc = (y_pred == y_test).mean()
 print(f"  Test accuracy: {acc:.4f} ({acc*100:.2f}%)")
 print()
 print(classification_report(y_test, y_pred, target_names=class_names))
-
-fig, ax = plt.subplots(figsize=(28, 24))  # daha b�y�k
+cm = confusion_matrix(y_test, y_pred)
+fig, ax = plt.subplots(figsize=(28, 24))  # daha büyük
 sns.heatmap(cm, annot=False, fmt="d", cmap="Blues",
             xticklabels=class_names, yticklabels=class_names, ax=ax)
 ax.set_xlabel("Predicted Label", fontsize=13)
@@ -134,16 +134,16 @@ plt.tight_layout()
 plt.savefig("reports/03_confusion_matrix.png",
             dpi=200, bbox_inches="tight", facecolor="white")
 
-# ── 6. ATTENTION MASK ANALİZİ ────────────────────────────────────────────────
+# â”€â”€ 6. ATTENTION MASK ANALÄ°ZÄ° â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 print("\nAttention mask analizi (AGE icin kritik)...")
 
-# Test setinden 2000 örnek al (hız için)
+# Test setinden 2000 Ã¶rnek al (hÄ±z iÃ§in)
 idx = np.random.choice(len(X_test), min(2000, len(X_test)), replace=False)
 X_sample = X_test[idx]
 
 explain_matrix, masks = model.explain(X_sample)
 
-# Genel özellik önemi
+# Genel Ã¶zellik Ã¶nemi
 feat_imp = pd.Series(
     np.mean(np.abs(explain_matrix), axis=0),
     index=feature_cols
@@ -154,7 +154,7 @@ for i, (feat, imp) in enumerate(feat_imp.head(15).items(), 1):
     bar = "X" * int(imp / feat_imp.max() * 20)
     print(f"  {i:2}. {feat:<40} {imp:.4f}  {bar}")
 
-# Grafik: özellik önemi
+# Grafik: Ã¶zellik Ã¶nemi
 fig, ax = plt.subplots(figsize=(12, 7))
 top15 = feat_imp.head(15)
 colors = plt.cm.RdYlGn_r(np.linspace(0.1, 0.9, len(top15)))
@@ -162,7 +162,7 @@ ax.barh(range(len(top15)), top15.values[::-1], color=colors[::-1])
 ax.set_yticks(range(len(top15)))
 ax.set_yticklabels(top15.index[::-1], fontsize=9)
 ax.set_xlabel("Ortalama Attention Agirligi")
-ax.set_title("TabNet Attention Mask — En Onemli 15 Ozellik\n(AGE Saldirisi Icin Birincil Hedefler)",
+ax.set_title("TabNet Attention Mask â€” En Onemli 15 Ozellik\n(AGE Saldirisi Icin Birincil Hedefler)",
              fontsize=12, fontweight="bold")
 ax.axvline(x=top15.values.mean(), color="red", linestyle="--", alpha=0.7, label="Ortalama")
 ax.legend()
@@ -171,7 +171,7 @@ plt.savefig("reports/04_attention_ozellik_onemi.png", dpi=150, bbox_inches="tigh
 plt.close()
 print("OK: reports/04_attention_ozellik_onemi.png")
 
-# Karar adımı × özellik heatmap
+# Karar adÄ±mÄ± Ã— Ã¶zellik heatmap
 print(f"\nKarar adimi bazinda attention ({len(masks)} adim):")
 step_imp = []
 for si, mask in enumerate(masks):
