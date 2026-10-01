@@ -1,6 +1,6 @@
 """
-03_tabnet_baseline.py 10-01-2026
-CICIoT2023 - TabNet Baseline + Attention Mask Analysis
+03_tabnet_baseline.py
+CICIoT2023 - TabNet Baseline + Attention Mask Analysis 10-01-2026
 Folder structure: CICIOT2023/train/train.csv etc.
 Run           : python3 03_tabnet_baseline.py
 Requirements  : pip install pytorch-tabnet scikit-learn
